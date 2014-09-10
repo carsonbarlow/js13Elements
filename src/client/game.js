@@ -3,6 +3,8 @@ var Troop = function(kind, attack){
   this.kind = kind;
   this.health = 100;
   this.attack = attack;
+  this.movement_max = 1;
+  this.movement = 1;
 };
 
 var TroopFactory = function(){
@@ -30,18 +32,20 @@ var TroopFactory = function(){
   };
 }
 
-
-var Territory = function(){
-  this.owner = 0;
-  this.defenders = new Defenders();
-};
-
 var Defenders = function(){
   this.unit_types = ['wind','water','fire','earth'];
   this.remove_index = parseInt(Math.random()*this.unit_types.length);
   for (var i = 0; i < this.unit_types.length; i++){
     this[this.unit_types[i]] = [];
   }
+
+  this.refresh_units = function(){ //need tests
+    for (var i = 0; i < this.unit_types.length; i++){
+      for (var j = 0; j < this[this.unit_types[i]].length; j++){
+        this[this.unit_types[i]][j].movement = this[this.unit_types[i]][j].movement_max;
+      }
+    }
+  };
 
   this.add_unit = function(unit){
     if (unit instanceof Troop){
@@ -66,7 +70,7 @@ var Defenders = function(){
         i--;
       }
     }
-  }
+  };
 
   this.deploy_units = function(num){
     var deploy_array = [];
@@ -99,43 +103,6 @@ var Defenders = function(){
     }
   };
 };
-
-var Player = function(player_num){
-  this.number = player_num;
-  this.money = 0;
-  this.wind = new Upgrade();
-  this.water = new Upgrade();
-  this.fire = new Upgrade();
-  this.earth = new Upgrade();
-
-  this.troopFactory = new TroopFactory();
-
-  this.purchase_upgrade = function(type){
-    this.money -= this[type].purchase();
-    this.troopFactory.setAttack(type,this[type].get_attack());
-  };
-};
-
-var Upgrade = function(){
-  this.i = 0;
-  this.attack = [20,24,28,32,36,40];
-  this.cost = [0,20,40,60,80,100];
-
-  this.can_purchase = function(money){
-    if (this.i == this.cost.length) return false;
-    return money >= this.cost[this.i+1];
-  }
-
-  this.purchase = function(){
-    this.i++;
-    return this.cost[this.i];
-  };
-
-  this.get_attack = function(){
-    return this.attack[this.i];
-  };
-};
-
 
 var BattleField = function(d1,d2){
   var element_bane = {
@@ -229,14 +196,196 @@ var BattleField = function(d1,d2){
     }
   };
 
-  this.resolve_conflict = function(){  //needs testing
+  this.resolve_conflict = function(){
     while(this.defender_1.get_total() > 0 && this.defender_2.get_total() > 0){
       this.bane_attack();
       this.standard_attack(3);
     }
   };
+};
+
+// end of battle system
+
+// players and territories
+
+var Upgrade = function(){
+  this.i = 0;
+  this.attack = [20,24,28,32,36,40];
+  this.cost = [0,20,30,40,50,60];
+
+  this.can_purchase = function(money){
+    if (this.i == this.cost.length) return false;
+    return money >= this.cost[this.i+1];
+  }
+
+  this.purchase = function(){
+    this.i++;
+    return this.cost[this.i];
+  };
+
+  this.get_attack = function(){
+    return this.attack[this.i];
+  };
+};
+
+var Player = function(player_num){
+  this.number = player_num;
+  this.money = 0;
+  this.prayers = 0;
+
+  this.wind = new Upgrade();
+  this.water = new Upgrade();
+  this.fire = new Upgrade();
+  this.earth = new Upgrade();
+
+  this.troopFactory = new TroopFactory();
+
+  this.purchase_upgrade = function(type){
+    this.money -= this[type].purchase();
+    this.troopFactory.setAttack(type,this[type].get_attack());
+  };
+
+  this.purchase_troop = function(type, territory){ // make tests
+    this.prayers -= 10;
+    territory.defenders.add_unit(this.troopFactory.makeTroop(type));
+  };
+};
+
+var Territory = function(){
+  this.owner = 0;
+  this.tribute = 1;
+  this.treasure = 0;
+  this.treasure_awarded = [];
+  this.defenders = new Defenders();
+  this.contenders = new Defenders();
+  this.neighbors = {
+    north: null,
+    north_east: null,
+    south_east: null,
+    south: null,
+    south_west: null,
+    north_west: null
+  };
+
+  // this should have an object to manage this function to allow for 'cancel' and 'confirm/attack'
+  this.transfer = function(territory, unit){
+    var target_defender = (this.owner == territory.owner)? territory.defenders : territory.contenders;
+    this.defenders.remove_unit(unit);
+    target_defender.add_unit(unit);
+    unit.movement--;
+  };
+
+  this.change_owner = function(player){
+    var has_awarded = false;
+    for (var i = 0; i < this.treasure_awarded.length; i++){
+      if (this.treasure_awarded[i] == player){
+        has_awarded = true;
+      }
+    }
+    if (!has_awarded){
+      this.treasure_awarded.push(player);
+      player.money += this.treasure;
+    }
+    this.owner = player.number;
+    this.defenders = this.contenders;
+    this.contenders = new Defenders();
+  };
+};
+
+var WarZone = function(){
+  this.territories = [];
+
+  this.build = function(){
+    var troopFactory = new TroopFactory();
+    var width = 5;
+    var height = 5;
+    var t_id = 1,
+      cord_x = 30+150,
+      cord_y = 52+30;
+    var horz = 82;
+    var vert = 52;
+
+    for (var h = 0; h < height-1; h++){
+      for (var w = 0; w < width; w++){
+        // this.territories.push(new Territory(t_id,cord_x,cord_y));
+        var territory = new Territory();
+        territory.pos_x = cord_x;
+        territory.pos_y = cord_y;
+        // t_id++;
+        cord_x += horz;
+        cord_y += vert;
+        cord_y = Math.round(cord_y*10)/10;
+        vert = -vert;
+
+        this.territories.push(territory);
+      }
+      cord_x -= (horz * (width));
+      cord_y += -vert;
+      cord_y = Math.round(cord_y*10)/10;
+      vert = -vert;
+    }
+    for (w = 0; w < Math.ceil(width/2); w++){
+      // this.territories.push(new Territory(t_id,cord_x,cord_y));
+      var territory = new Territory();
+        territory.pos_x = cord_x;
+        territory.pos_y = cord_y;
+      // t_id++;
+      cord_x += (horz * 2);
+      this.territories.push(territory);
+    }
+    // connect/populate the territories
+    var config;
+    for (var i = 0; i < this.territories.length; i++){
+      config = masterConfig.territories['t'+i];
+      if (!!config.north){this.connect_territories(this.territories[i],this.territories[config.north],'north');}
+      if (!!config.north_west){this.connect_territories(this.territories[i],this.territories[config.north_west],'north_west');}
+      if (!!config.north_east){this.connect_territories(this.territories[i],this.territories[config.north_east],'north_east');}
+      if (!!config.wind){this.territories[i].defenders.add_unit(troopFactory.makeTroop('wind',config.wind));}
+      if (!!config.water){this.territories[i].defenders.add_unit(troopFactory.makeTroop('water',config.water));}
+      if (!!config.fire){this.territories[i].defenders.add_unit(troopFactory.makeTroop('fire',config.fire));}
+      if (!!config.earth){this.territories[i].defenders.add_unit(troopFactory.makeTroop('earth',config.earth));}
+      if (!!config.player){this.territories[i].owner = config.player;}else{this.territories[i].owner = 3;}
+      if (!!config.treasure){this.territories[i].treasure = config.treasure;}
+      this.territories[i].capital = !!config.capital;
+    }
+  };
+
+  this.connect_territories = function(t1,t2,border){
+    var connections = {
+      north : 'south',
+      north_west: 'south_east',
+      north_east: 'south_west'
+    };
+    t1.neighbors[border] = t2;
+    t2.neighbors[connections[border]] = t1;
+  };
 
 };
 
-
-
+var masterConfig = { // neighbors are solid, ...
+  territories: {
+    t0:  {north: 5, north_east: 1, fire: 7, treasure: 5},
+    t1:  {north_east: 7, wind: 2},
+    t2:  {north_west: 1, north_east: 3, wind: 1, water: 1, fire: 1, earth: 1},
+    t3:  {north_west: 7, north: 8, wind: 2},
+    t4:  {north_west: 3, north: 9, earth: 3},
+    t5:  {north: 10, north_east: 6, wind: 1, water: 1, fire: 1, earth: 1, player: 1},
+    t6:  {north_west: 10, north: 11, wind: 5, water: 5, fire: 5, earth: 5, player: 1, capital: true},
+    t7:  {north_west: 6, north: 12, earth: 1},
+    t8:  {north_west: 12, north: 13, north_east: 14, fire: 1},
+    t9:  {water: 12, treasure: 10},
+    t10: {north_east: 11, wind: 2, water: 2, fire: 2, earth: 2, player: 1},
+    t11: {north: 16, wind: 1},
+    t12: {north_west: 11, north: 17, wind: 4, water: 4, fire: 4, earth: 4, treasure: 15},
+    t13: {north_west: 17, north_east: 19, wind: 5, water: 5, fire: 5, earth: 5, player: 2, capital: true},
+    t14: {north_west: 13, north: 19, wind: 2, water: 2, fire: 2, earth: 2, player: 2},
+    t15: {north: 20, earth: 16, treasure: 10},
+    t16: {north_west: 20, north_east: 21, fire: 2},
+    t17: {north_west: 16, north_east: 18, water: 1},
+    t18: {north_west: 21, north_east: 22, fire: 2},
+    t19: {north: 22, wind: 1, water: 1, fire: 1, earth: 1, player: 2},
+    t20: {water: 3},
+    t21: {wind: 1, water: 1, fire: 1, earth: 1},
+    t22: {wind: 7, treasure: 5}
+  }
+};
