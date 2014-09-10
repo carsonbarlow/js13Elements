@@ -1,18 +1,5 @@
 var testing = true;
 
-var upgrade = new Upgrade();
-cbt.describe('Upgrade: can_purchase');
-cbt.should('check if you can buy the next tier', true, upgrade.can_purchase(20));
-cbt.should('return false if you cannot afford it', false, upgrade.can_purchase(19));
-upgrade.i = upgrade.attack.length;
-cbt.should('return false if there are no more upgrades left', false, upgrade.can_purchase(100000));
-
-upgrade.i = 0;
-cbt.describe('Upgrade: get_attack');
-cbt.should('return the current attack', 20, upgrade.get_attack());
-
-cbt.describe('Upgrade: purchase');
-cbt.should('return the amount of money it took to make the purchase', 20, upgrade.purchase());
 
 var troopFactory = new TroopFactory();
 cbt.describe('TroopFactory');
@@ -240,3 +227,113 @@ defender2.add_unit(troopFactory.makeTroop('water',5));
 battleField.resolve_conflict();
 cbt.should('properly use bane_attack',[0,5],[defender1.get_total(),defender2.get_total()]);
 cbt.should('..',40,defender2.water[0].health);
+
+// end of battle system
+
+// players and territories
+
+var upgrade = new Upgrade();
+cbt.describe('Upgrade: can_purchase');
+cbt.should('check if you can buy the next tier', true, upgrade.can_purchase(20));
+cbt.should('return false if you cannot afford it', false, upgrade.can_purchase(19));
+upgrade.i = upgrade.attack.length;
+cbt.should('return false if there are no more upgrades left', false, upgrade.can_purchase(100000));
+
+upgrade.i = 0;
+cbt.describe('Upgrade: get_attack');
+cbt.should('return the current attack', 20, upgrade.get_attack());
+cbt.describe('Upgrade: purchase');
+cbt.should('return the amount of money it took to make the purchase', 20, upgrade.purchase());
+
+var player1 = new Player(1);
+cbt.describe('Player: purchase_upgrade');
+player1.money = 30;
+player1.purchase_upgrade('fire');
+cbt.should('cost money',10,player1.money);
+cbt.should('upgrade the new production of the kind that was upgraded', 24, player1.troopFactory.attack.fire);
+
+cbt.describe('Territory: change_owner');
+var territory1 = new Territory();
+territory1.owner = 1;
+var territory2 = new Territory();
+var player2 =  new Player(2);
+territory2.owner = 2;
+territory1.treasure = 100;
+territory1.change_owner(player2);
+cbt.should('give a one time reward to it\'s captor, if it has the reward', 100, player2.money);
+player1.money = 10;
+territory1.change_owner(player1);
+cbt.should('give the reward to each new captor', 110, player1.money);
+territory1.change_owner(player2);
+cbt.should('give the reward only once per player',100, player2.money);
+territory1.contenders.add_unit(troopFactory.makeTroop('fire',5));
+territory1.change_owner(player1);
+cbt.should('put the contending units in charge', 5, territory1.defenders.get_total());
+cbt.should('..',0,territory1.contenders.get_total());
+
+cbt.describe('Territory: transfer');
+territory1 = new Territory();
+territory1.owner = 1;
+territory2 = new Territory();
+territory2.owner = 1;
+
+territory1.defenders.add_unit(troopFactory.makeTroop('fire',5));
+troop1 = territory1.defenders.fire[2];
+troop1.health = 50;
+territory1.transfer(territory2, troop1);
+cbt.should('transfer a single troop from one territory to another', 1, territory2.defenders.get_total());
+cbt.should('..',4,territory1.defenders.get_total());
+cbt.should('transfer teh actual troop',50,territory2.defenders.fire[0].health);
+territory2.owner = 2;
+territory2.transfer(territory1,troop1);
+cbt.should('transfer to contenders if there is a conflict of ownership', 1, territory1.contenders.get_total());
+cbt.should('..',4,territory1.defenders.get_total());
+cbt.should('transfer the actual troop',50,territory1.contenders.fire[0].health);
+
+
+warZone = new WarZone();
+cbt.describe('WarZone: connect_territories');
+territory1 = new Territory();
+territory2 = new Territory();
+warZone.connect_territories(territory1,territory2,'north_east');
+cbt.should('connect the second territory to the first by the specified border of the first',territory2,territory1.neighbors.north_east);
+cbt.should('make the proper inverse connection with the second territory',territory1,territory2.neighbors.south_west);
+
+cbt.describe('WarZone: build');
+warZone.build();
+cbt.should('link up territories', 5, warZone.territories.indexOf(warZone.territories[0].neighbors.north));
+cbt.should('..', 8, warZone.territories.indexOf(warZone.territories[3].neighbors.north));
+cbt.should('..', 9, warZone.territories.indexOf(warZone.territories[4].neighbors.north));
+cbt.should('..', 10, warZone.territories.indexOf(warZone.territories[5].neighbors.north));
+cbt.should('..', 11, warZone.territories.indexOf(warZone.territories[6].neighbors.north));
+cbt.should('..', 12, warZone.territories.indexOf(warZone.territories[7].neighbors.north));
+cbt.should('..', 13, warZone.territories.indexOf(warZone.territories[8].neighbors.north));
+cbt.should('..', 16, warZone.territories.indexOf(warZone.territories[11].neighbors.north));
+cbt.should('..', 17, warZone.territories.indexOf(warZone.territories[12].neighbors.north));
+cbt.should('..', 19, warZone.territories.indexOf(warZone.territories[14].neighbors.north));
+cbt.should('..', 20, warZone.territories.indexOf(warZone.territories[15].neighbors.north));
+cbt.should('..', 22, warZone.territories.indexOf(warZone.territories[19].neighbors.north));
+
+cbt.should('..', 1, warZone.territories.indexOf(warZone.territories[2].neighbors.north_west));
+cbt.should('..', 7, warZone.territories.indexOf(warZone.territories[3].neighbors.north_west));
+cbt.should('..', 3, warZone.territories.indexOf(warZone.territories[4].neighbors.north_west));
+cbt.should('..', 10, warZone.territories.indexOf(warZone.territories[6].neighbors.north_west));
+cbt.should('..', 6, warZone.territories.indexOf(warZone.territories[7].neighbors.north_west));
+cbt.should('..', 12, warZone.territories.indexOf(warZone.territories[8].neighbors.north_west));
+cbt.should('..', 11, warZone.territories.indexOf(warZone.territories[12].neighbors.north_west));
+cbt.should('..', 17, warZone.territories.indexOf(warZone.territories[13].neighbors.north_west));
+cbt.should('..', 13, warZone.territories.indexOf(warZone.territories[14].neighbors.north_west));
+cbt.should('..', 20, warZone.territories.indexOf(warZone.territories[16].neighbors.north_west));
+cbt.should('..', 16, warZone.territories.indexOf(warZone.territories[17].neighbors.north_west));
+cbt.should('..', 21, warZone.territories.indexOf(warZone.territories[18].neighbors.north_west));
+
+cbt.should('..', 1, warZone.territories.indexOf(warZone.territories[0].neighbors.north_east));
+cbt.should('..', 7, warZone.territories.indexOf(warZone.territories[1].neighbors.north_east));
+cbt.should('..', 3, warZone.territories.indexOf(warZone.territories[2].neighbors.north_east));
+cbt.should('..', 6, warZone.territories.indexOf(warZone.territories[5].neighbors.north_east));
+cbt.should('..', 14, warZone.territories.indexOf(warZone.territories[8].neighbors.north_east));
+cbt.should('..', 11, warZone.territories.indexOf(warZone.territories[10].neighbors.north_east));
+cbt.should('..', 19, warZone.territories.indexOf(warZone.territories[13].neighbors.north_east));
+cbt.should('..', 21, warZone.territories.indexOf(warZone.territories[16].neighbors.north_east));
+cbt.should('..', 18, warZone.territories.indexOf(warZone.territories[17].neighbors.north_east));
+cbt.should('..', 22, warZone.territories.indexOf(warZone.territories[18].neighbors.north_east));
