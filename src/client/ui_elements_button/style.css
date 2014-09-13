@@ -1,0 +1,51 @@
+.container {
+		width: 720px;
+		height: 600px;
+		background: rgb(255,255,255); /* Old browsers */
+		background: -moz-radial-gradient(center, ellipse cover,  rgba(255,255,255,1) 0%, rgba(0,168,222,1) 100%); /* FF3.6+ */
+		background: -webkit-gradient(radial, center center, 0px, center center, 100%, color-stop(0%,rgba(255,255,255,1)), color-stop(100%,rgba(0,168,222,1))); /* Chrome,Safari4+ */
+		background: -webkit-radial-gradient(center, ellipse cover,  rgba(255,255,255,1) 0%,rgba(0,168,222,1) 100%); /* Chrome10+,Safari5.1+ */
+		background: -o-radial-gradient(center, ellipse cover,  rgba(255,255,255,1) 0%,rgba(0,168,222,1) 100%); /* Opera 12+ */
+		background: -ms-radial-gradient(center, ellipse cover,  rgba(255,255,255,1) 0%,rgba(0,168,222,1) 100%); /* IE10+ */
+		background: radial-gradient(ellipse at center,  rgba(255,255,255,1) 0%,rgba(0,168,222,1) 100%); /* W3C */
+		filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ffffff', endColorstr='#00a8de',GradientType=1 ); /* IE6-9 fallback on horizontal gradient */
+	}
+	h1 {
+		position: absolute;
+		top: 45px;
+		left: 160px;
+		font-size: 50px;
+		font-family: arial;
+		font-weight: bold;
+		color: #ffffff;
+	}
+	.select {
+		position: relative;
+		top: 190px;
+		left: 185px;
+	}
+	.btn {
+		display: block;
+		width: 50%;
+		border: 2px solid #ffffff;
+		cursor: pointer;
+		color: #ffffff;
+		font-family: arial;
+		font-size: 20px;
+		padding: 20px 76px;
+		margin-top: 5px;
+	}
+	.btn:hover {
+		background-color: #333333;
+	}
+	.btn--red {
+		background-color: #ed1c23;
+	}
+
+	.btn--green {
+		background-color: #00a550;
+	}
+
+	.btn--blue {
+		background-color: #2e3092;
+	}

@@ -337,3 +337,9 @@ cbt.should('..', 19, warZone.territories.indexOf(warZone.territories[13].neighbo
 cbt.should('..', 21, warZone.territories.indexOf(warZone.territories[16].neighbors.north_east));
 cbt.should('..', 18, warZone.territories.indexOf(warZone.territories[17].neighbors.north_east));
 cbt.should('..', 22, warZone.territories.indexOf(warZone.territories[18].neighbors.north_east));
+
+var gameMaster = new GameMaster();
+gameMaster.set_active_player(2);
+cbt.describe('GameMaster: set_active_player');
+cbt.should('set the active player to the id provided', 2, gameMaster.active_player.number);
+cbt.should('set the opponent to the other player', 1, gameMaster.opponent_player.number);

@@ -5,9 +5,63 @@
     <link rel="stylesheet" type="text/css" href="style.css">
   </head>
   <body>
-    <script src="/socket.io/socket.io.js"></script>
-    <script type="text/javascript" src="game.js"></script>
-    <script type="text/javascript" src="cb_testing.js"></script>
-    <script type="text/javascript" src="test.js"></script>
+
+  <canvas id="warzone_canvas" width="720" height="600"></canvas>
+  <div id="select_territory">
+  </div>
+  <div id="title_screen" class="container">
+    <h1>ELEMENTAL CONQUEST</h1>
+      <div class="select">
+        <button class="btn btn--red">CREATE GAME</button>
+        <button class="btn btn--blue">JOIN GAME</button>
+        <button class="btn btn--green">AUTO PAIR</button>
+      </div>
+  </div>
+  <div id="join_screen" class="container">
+    <form>
+      Game Number: <input type="text" name="game_number" id="input_game_number">
+    </form>
+    <button id="join_game_submit">JOIN</button>
+  </div>
+
+<!-- <svg
+   width="50"
+   height="50"
+   xml:space="preserve">
+   <path
+   d="M 27,7 48,39 17,45 1,39 20,5 25,11 27,7"
+   style="fill:#996633;stroke:#231f20;stroke-linecap:square;stroke-miterlimit:10" />
+   <path
+   d="M 14,22 20,11 25,17 27,13 30,18 27,16 26,22 20,15 14,22"
+   style="fill:#cccccc;stroke:#231f20;stroke-linecap:square;stroke-miterlimit:10" />
+</svg>
+
+<svg id="num2"
+   width="50"
+   height="50"
+   xml:space="preserve">
+<path
+   d="M 14,22 20,11 25,17 27,13 30,18 27,16 26,22 20,15 14,22 M 27,7 48,39 17,45 1,39 20,5 25,11 27,7"
+   style="fill:none;stroke:#231f20;stroke-linecap:square;stroke-miterlimit:10" />
+</svg> -->
+
+<!-- <svg
+   width="50"
+   height="50"
+   xml:space="preserve">
+   <path
+   d="M 27,7 48,39 17,45 1,39 20,5 25,11 27,7"
+   style="fill:#996633;stroke:#231f20;stroke-linecap:square;stroke-miterlimit:10" />
+   <path
+   d="M 14,22 20,11 25,17 27,13 30,18 27,16 26,22 20,15 14,22"
+   style="fill:#cccccc;stroke:#231f20;stroke-linecap:square;stroke-miterlimit:10" />
+</svg> -->
+
+
+
+     <script src="/socket.io/socket.io.js"></script>
+     <script type="text/javascript" src="game.js"></script>
+    <!-- // <script type="text/javascript" src="cb_testing.js"></script> -->
+    <!-- // <script type="text/javascript" src="test.js"></script> -->
   </body>
 </html>
