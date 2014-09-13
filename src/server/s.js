@@ -41,10 +41,11 @@ function handler(request, response)
   });
 }
 
-var S = {};
-
-S.games = [];
-S.unique_number = 1;
+var S = {
+  game: [],
+  unique_number: 1,
+  time_stamp: 0
+};
 
 // DEBUG BEGIN
 S.log = function(socket, s)
@@ -56,19 +57,16 @@ S.log = function(socket, s)
 
 io.sockets.on('connection', function(socket){
   S.log(socket, "connected");
-  // Emit a "message" to the socket who just connected.
-  socket.emit('chat message', {message: 'Welcome to my test chat.' });
   // "recieve" event handler
-  socket.on('chat message', function(data){
-    io.sockets.in('r'+data.rn).emit('chat message', data);
-  });
   socket.on('pairing_option', function(data){
     switch (data.type){
       case 'create':
         S.log(socket, "Room Number: "+S.unique_number);
-        socket.join('r'+S.unique_number);
-        socket.emit('session_created', S.unique_number);
-        S.unique_number++;
+        var date_now = Date.now();
+        if(S.time_stamp == date_now){S.unique_number++}
+        S.time_stamp = date_now;
+        socket.join('r'+date_now+S.unique_number);
+        socket.emit('session_created', ''+date_now+S.unique_number);
       break;
       case 'join':
         S.log(socket, "Join Number: "+data.number);
@@ -82,7 +80,4 @@ io.sockets.on('connection', function(socket){
 
 
 app.listen(8000);
-
-console.log(typeof testing);
-
 console.log('Ready!');
